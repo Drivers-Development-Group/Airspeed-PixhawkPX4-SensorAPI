@@ -27,7 +27,7 @@ SOFTWARE.
 #define MS4525_SENSOR_H
 
 #include <stdint.h>
-#include "driver/i2c.h"
+#include <stdbool.h>
 
 //Output types A and B, defaults to A
 typedef enum{
@@ -44,12 +44,17 @@ typedef struct {
     uint8_t i2c_address;
     uint8_t min_pressure;
     uint8_t max_pressure;
-    OUTPUT_TYPE_MS4525 output_type = OUTPUT_TYPE_A;
+    OUTPUT_TYPE_MS4525 output_type;
 }ms4525_config;
 
+const uint8_t P_CNT = 16383;
+const uint8_t T_CNT = 2047;
+const uint8_t T_MAX = 150;
+const int8_t T_MIN = -50;
+
+
 //Sets up the port
-//@return success in bool
-bool setup_ms4524(ms4525_config *config);
+void setup_ms4524(ms4525_config *config, uint8_t i2c_address, uint8_t min_pressure, uint8_t max_pressure, OUTPUT_TYPE_MS4525 output_type);
 
 //Checks the pressure with raw data
 //@return pressure raw data in float
@@ -67,13 +72,17 @@ float get_temp_raw_ms4524(ms4525_config config);
 //@return temperature celsius data in float
 float get_temp_c_ms4524(ms4525_config config);
 
+//Calculates the speed in m/s
+//@return speed meters/s in float
+float get_speed_ms_ms4524(ms4525_config config);
+
 //Calculates the speed in knots
 //@return speed knots in float
 float get_speed_kt_ms4524(ms4525_config config);
 
 //Calculates the speed in km/h
 //@return speed kilometers/h in float
-float get_speed_km_ms4524(ms4525_config config);
+float get_speed_kms_ms4524(ms4525_config config);
 
 
-#endif 
+#endif MS4525_SENSOR_H
