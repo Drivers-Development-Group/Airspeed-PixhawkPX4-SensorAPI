@@ -26,63 +26,77 @@ SOFTWARE.
 #ifndef MS4525_SENSOR_H
 #define MS4525_SENSOR_H
 
-#include <stdint.h>
-#include <stdbool.h>
+#define I2C_ADDRESS_MS4525 0x28
 
-//Output types A and B, defaults to A
-typedef enum{
+#include <stdint.h>
+#include "esp_err.h"
+#include "driver/i2c_master.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
+#define I2C_ADDRESS_MS4525 0x28
+
+#define P_CNT 16383.0f
+#define T_CNT 2047.0f
+
+#define T_MIN -50.0f
+#define T_MAX 150.0f
+
+typedef enum
+{
     OUTPUT_TYPE_A,
     OUTPUT_TYPE_B
-}OUTPUT_TYPE_MS4525;
+} OUTPUT_TYPE_MS4525;
 
-//Configuration of ms4525
-//@param i2c_address address of the connected i2c
-//@param min_pressure minimum pressure of the sensor
-//@param max_pressure maximum pressure of the sensor
-//@param output_type output types A and B, defaults to A
-typedef struct {
-    uint8_t i2c_address;
-    uint8_t min_pressure;
-    uint8_t max_pressure;
+typedef struct
+{
+    i2c_device_config_t dev_cfg;
+
+    i2c_master_dev_handle_t sensor;
+
     OUTPUT_TYPE_MS4525 output_type;
-}ms4525_config;
 
-const uint8_t P_CNT = 16383;
-const uint8_t T_CNT = 2047;
-const uint8_t T_MAX = 150;
-const int8_t T_MIN = -50;
+    float min_pressure;
+    float max_pressure;
+    float pressure_span;
 
+    float output_min;
+    float output_span;
 
-//Sets up the port
-void setup_ms4524(ms4525_config *config, uint8_t i2c_address, uint8_t min_pressure, uint8_t max_pressure, OUTPUT_TYPE_MS4525 output_type);
+} ms4525_config;
 
-//Checks the pressure with raw data
-//@return pressure raw data in float
-float get_pressure_raw_ms4524(ms4525_config config);
+typedef struct
+{
+    uint8_t raw[4];
 
-//Checks the pressure with pascals
-//@return pressure pascal data in float
-float get_pressure_pa_ms4524(ms4525_config config);
+    uint8_t status;
 
-//Checks the temperature with raw data
-//@return temperature raw data in float
-float get_temp_raw_ms4524(ms4525_config config);
+    uint16_t pressure_raw;
+    uint16_t temp_raw;
 
-//Checks the temperature with celsius data
-//@return temperature celsius data in float
-float get_temp_c_ms4524(ms4525_config config);
+    float pressure_pa;
+    float temp_c;
 
-//Calculates the speed in m/s
-//@return speed meters/s in float
-float get_speed_ms_ms4524(ms4525_config config);
+    float speed_ms;
+    float speed_kmh;
+    float speed_kt;
 
-//Calculates the speed in knots
-//@return speed knots in float
-float get_speed_kt_ms4524(ms4525_config config);
+} ms4525_data;
 
-//Calculates the speed in km/h
-//@return speed kilometers/h in float
-float get_speed_kms_ms4524(ms4525_config config);
+void setup_ms4525(
+    ms4525_config *config,
+    uint32_t i2c_frequency,
+    float min_pressure_psi,
+    float max_pressure_psi,
+    OUTPUT_TYPE_MS4525 output_type);
 
+esp_err_t add_ms4525_device(
+    i2c_master_bus_handle_t bus_handle,
+    ms4525_config *config,
+    i2c_master_dev_handle_t *sensor);
 
-#endif MS4525_SENSOR_H
+esp_err_t ms4525_read(
+    ms4525_config *config,
+    ms4525_data *out);
+
+#endif
