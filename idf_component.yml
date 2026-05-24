@@ -1,0 +1,4 @@
+version: "1.0.0"
+description: "MS4525DO differential pressure sensor driver for ESP-IDF"
+url: "https://github.com/Drivers-Development-Group/Airspeed-PixhawkPX4-SensorAPI"
+license: "MIT"

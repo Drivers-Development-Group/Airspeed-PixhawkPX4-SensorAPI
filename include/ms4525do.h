@@ -42,61 +42,43 @@ SOFTWARE.
 #define T_MIN -50.0f
 #define T_MAX 150.0f
 
-typedef enum
-{
+typedef enum{
     OUTPUT_TYPE_A,
     OUTPUT_TYPE_B
 } OUTPUT_TYPE_MS4525;
 
-typedef struct
-{
+typedef struct{
     i2c_device_config_t dev_cfg;
-
     i2c_master_dev_handle_t sensor;
-
     OUTPUT_TYPE_MS4525 output_type;
-
     float min_pressure;
     float max_pressure;
     float pressure_span;
-
     float output_min;
     float output_span;
-
 } ms4525_config;
 
-typedef struct
-{
+typedef struct{
     uint8_t raw[4];
-
     uint8_t status;
-
     uint16_t pressure_raw;
     uint16_t temp_raw;
-
     float pressure_pa;
     float temp_c;
-
     float speed_ms;
     float speed_kmh;
     float speed_kt;
-
+    float offset;
 } ms4525_data;
 
-void setup_ms4525(
-    ms4525_config *config,
-    uint32_t i2c_frequency,
-    float min_pressure_psi,
-    float max_pressure_psi,
-    OUTPUT_TYPE_MS4525 output_type);
+void setup_ms4525(ms4525_config *config, uint32_t i2c_frequency, float min_pressure_psi, float max_pressure_psi, OUTPUT_TYPE_MS4525 output_type);
 
-esp_err_t add_ms4525_device(
-    i2c_master_bus_handle_t bus_handle,
-    ms4525_config *config,
-    i2c_master_dev_handle_t *sensor);
+esp_err_t add_ms4525_device(i2c_master_bus_handle_t bus_handle, ms4525_config *config, i2c_master_dev_handle_t *sensor);
 
-esp_err_t ms4525_read(
-    ms4525_config *config,
-    ms4525_data *out);
+esp_err_t ms4525_read(ms4525_config *config, ms4525_data *out);
+
+esp_err_t ms4525_offset_make(ms4525_config *config, ms4525_data *out, uint16_t offset_loop_amount);
+
+void ms4525_offset_add(ms4525_data *data, float offset);
 
 #endif
