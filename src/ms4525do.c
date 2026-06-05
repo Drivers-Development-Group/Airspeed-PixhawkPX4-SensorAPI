@@ -1,42 +1,80 @@
-/*
-Drivers Development Group
-safranko.peter1@gmail.com
+/**
+ * Copyright (c) 2026 Drivers Development Group
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 
-Copyright (c) 2026 Drivers Development Group
+/**
+ * @file 	ms4525do.c
+ * @brief	MS4525DO differential pressure sensor driver implementation.
+ *
+ * Created on May 2026
+ * 		@author Peter Šafranko		safranko.peter1@gmail.com
+ * 		@author Luciano Carricart	carricartluciano@gmail.com
+ */
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
-
+/********************************************************************************
+ * INCLUDES
+ ********************************************************************************/
 #include "ms4525do.h"
 
 #include <math.h>
 #include <string.h>
 
+/********************************************************************************
+ * DEFINITIONS
+ ********************************************************************************/
 #define PSI_TO_PA 6894.76f
 #define AIR_DENSITY 1.225f
 #define FILTER_SIZE 10
 
+/********************************************************************************
+ * LOCAL VARIABLES
+ ********************************************************************************/
+float pressureBuffer[FILTER_SIZE];
+int bufferIndex = 0;
+float pressureSum = 0;
 
+/********************************************************************************
+ * LOCAL FUNCTIONS
+ ********************************************************************************/
+/* See ms4525do.h for details */
 static esp_err_t ms4525_read_raw(ms4525_config *config, uint8_t data[4]){
     return i2c_master_receive(config->sensor, data, 4, -1);
 }
 
+/* See ms4525do.h for details */
+float updatePressureFilter(float newPressurePa)
+{
+    pressureSum -= pressureBuffer[bufferIndex];
+    pressureBuffer[bufferIndex] = newPressurePa;
+    pressureSum += newPressurePa;
+    bufferIndex++;
+    if (bufferIndex >= FILTER_SIZE)
+        bufferIndex = 0;
+    return pressureSum / FILTER_SIZE;
+}
+
+/********************************************************************************
+ * PUBLIC FUNCTIONS
+ ********************************************************************************/
+/* See ms4525do.h for details */
 void setup_ms4525(ms4525_config *config, uint32_t i2c_frequency, float min_pressure_psi, float max_pressure_psi, OUTPUT_TYPE_MS4525 output_type){
     memset(config, 0, sizeof(ms4525_config));
     config->dev_cfg.dev_addr_length = I2C_ADDR_BIT_LEN_7;
@@ -56,28 +94,14 @@ void setup_ms4525(ms4525_config *config, uint32_t i2c_frequency, float min_press
     }
 }
 
+/* See ms4525do.h for details */
 esp_err_t add_ms4525_device(i2c_master_bus_handle_t bus_handle, ms4525_config *config, i2c_master_dev_handle_t *sensor){
     esp_err_t err = i2c_master_bus_add_device(bus_handle, &config->dev_cfg, sensor);
     config->sensor = *sensor;
     return err;
 }
 
-float pressureBuffer[FILTER_SIZE];
-int bufferIndex = 0;
-float pressureSum = 0;
-
-
-float updatePressureFilter(float newPressurePa)
-{
-    pressureSum -= pressureBuffer[bufferIndex];
-    pressureBuffer[bufferIndex] = newPressurePa;
-    pressureSum += newPressurePa;
-    bufferIndex++;
-    if (bufferIndex >= FILTER_SIZE)
-        bufferIndex = 0;
-    return pressureSum / FILTER_SIZE;
-}
-
+/* See ms4525do.h for details */
 esp_err_t ms4525_read(ms4525_config *config, ms4525_data *out){
     uint8_t data[4];
     esp_err_t err = ms4525_read_raw(config, data);
@@ -102,6 +126,7 @@ esp_err_t ms4525_read(ms4525_config *config, ms4525_data *out){
     return ESP_OK;
 }
 
+/* See ms4525do.h for details */
 esp_err_t ms4525_offset(ms4525_config *config, ms4525_data *out, uint16_t offset_loop_amount){
     float offset = 0;
     esp_err_t err;
@@ -116,6 +141,7 @@ esp_err_t ms4525_offset(ms4525_config *config, ms4525_data *out, uint16_t offset
     return ESP_OK;
 }
 
+/* See ms4525do.h for details */
 void ms4525_offset_add(ms4525_data *data, float offset){
     data->offset = offset;
 }
