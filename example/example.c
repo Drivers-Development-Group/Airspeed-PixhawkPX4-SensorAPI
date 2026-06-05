@@ -1,42 +1,55 @@
-/*
-Drivers Development Group
-safranko.peter1@gmail.com
+/**
+ * Copyright (c) 2026 Drivers Development Group
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 
-Copyright (c) 2026 Drivers Development Group
+/**
+ * @file    main.c
+ * @brief   Example application for the MS4525DO pressure sensor driver.
+ */
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
-
+/********************************************************************************
+ * INCLUDES
+ ********************************************************************************/
 #include <stdio.h>
-#include "esp_log.h"
+
 #include "driver/i2c_master.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+
 #include "ms4525do.h"
 
-#define I2C_PORT       I2C_NUM_0
-#define SDA_PIN        21
-#define SCL_PIN        22
-#define I2C_FREQ_HZ    100000
+/********************************************************************************
+ * DEFINITIONS
+ ********************************************************************************/
+#define I2C_PORT       		(I2C_NUM_0)
+#define SDA_PIN        		(21)
+#define SCL_PIN        		(22)
+#define I2C_FREQ_HZ    		(100000)
 
-void app_main(void)
-{
+#define APP_TASK_DELAY_MS	(50)
+
+/********************************************************************************
+ * APPLICATION
+ ********************************************************************************/
+void app_main(void) {
     i2c_master_bus_config_t bus_config =
     {
         .i2c_port = I2C_PORT,
@@ -56,11 +69,10 @@ void app_main(void)
     i2c_master_dev_handle_t sensor;
     ESP_ERROR_CHECK(add_ms4525_device(bus_handle, &sensor_cfg, &sensor));
     
-    ms4525_data data;
-    ms4525_offset(&sensor_cfg,&data, 1000);
+    ms4525_data data = {0};
+    ESP_ERROR_CHECK(ms4525_offset(&sensor_cfg, &data, 1000U));
 
-    while(1)
-    {
+    while(1) {
         esp_err_t err = ms4525_read(&sensor_cfg, &data);
 
         if(err == ESP_OK)
@@ -75,12 +87,10 @@ void app_main(void)
                 data.temp_c,
                 data.speed_ms,
                 data.speed_kmh);
-        }
-        else
-        {
+        } else {
             printf("Read Failed\n");
         }
 
-        vTaskDelay(pdMS_TO_TICKS(50));
+        vTaskDelay(pdMS_TO_TICKS(APP_TASK_DELAY_MS));
     }
 }
