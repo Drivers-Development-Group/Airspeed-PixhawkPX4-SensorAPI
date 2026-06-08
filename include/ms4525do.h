@@ -34,6 +34,7 @@ extern "C" {
  * Created on May 2026
  * 		@author Peter Šafranko		safranko.peter1@gmail.com
  * 		@author Luciano Carricart	carricartluciano@gmail.com
+ *		@author Juan Grondona		jgrondonacaimi@gmail.com
  */
 
 /********************************************************************************

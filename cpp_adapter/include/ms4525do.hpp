@@ -25,9 +25,9 @@
  * @brief	MS4525DO differential pressure sensor public API
  *
  * Created on June 2026
- * 		@author Peter Šafranko		            safranko.peter1@gmail.com
- * 		@author Luciano Carricart	            carricartluciano@gmail.com
- *      @author Juan Valentin Grondona Caimi    jgrondonacaimi@gmail.com
+ * 		@author Peter Šafranko		safranko.peter1@gmail.com
+ * 		@author Luciano Carricart	carricartluciano@gmail.com
+ *		@author Juan Grondona		jgrondonacaimi@gmail.com
  */
 
 
@@ -35,6 +35,7 @@
  * INCLUDES
  ********************************************************************************/
 #include "ms4525do.h"
+
 /********************************************************************************
  * CLASSES
  ********************************************************************************/
