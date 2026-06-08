@@ -30,17 +30,11 @@
  *		@author Juan Grondona		jgrondonacaimi@gmail.com
  */
 
-/********************************************************************************
- * INCLUDES
- ********************************************************************************/
 #include "ms4525do.h"
 
 #include <math.h>
 #include <string.h>
 
-/********************************************************************************
- * DEFINITIONS
- ********************************************************************************/
 #define PSI_TO_PA 		(6894.76f)
 #define AIR_DENSITY 	(1.225f)
 #define FILTER_SIZE 	(10U)
@@ -51,22 +45,14 @@
 #define T_MIN 			(-50.0f)
 #define T_MAX 			(150.0f)
 
-/********************************************************************************
- * LOCAL VARIABLES
- ********************************************************************************/
 static float pressureBuffer[FILTER_SIZE];
 static uint8_t bufferIndex = 0;
 static float pressureSum = 0.0f;
 
-/********************************************************************************
- * LOCAL FUNCTIONS
- ********************************************************************************/
-/* See ms4525do.h for details */
 static esp_err_t ms4525_read_raw(ms4525_config *config, uint8_t data[4]) {
     return i2c_master_receive(config->sensor, data, 4, -1);
 }
 
-/* See ms4525do.h for details */
 float updatePressureFilter(float newPressurePa)
 {
     pressureSum -= pressureBuffer[bufferIndex];
@@ -78,10 +64,6 @@ float updatePressureFilter(float newPressurePa)
     return pressureSum / FILTER_SIZE;
 }
 
-/********************************************************************************
- * PUBLIC FUNCTIONS
- ********************************************************************************/
-/* See ms4525do.h for details */
 void setup_ms4525(ms4525_config *config, uint32_t i2c_frequency, float min_pressure_psi, float max_pressure_psi, OUTPUT_TYPE_MS4525 output_type) {
     memset(config, 0, sizeof(ms4525_config));
     config->dev_cfg.dev_addr_length = I2C_ADDR_BIT_LEN_7;
@@ -102,20 +84,18 @@ void setup_ms4525(ms4525_config *config, uint32_t i2c_frequency, float min_press
     }
 }
 
-/* See ms4525do.h for details */
 esp_err_t add_ms4525_device(i2c_master_bus_handle_t bus_handle, ms4525_config *config, i2c_master_dev_handle_t *sensor) {
 	esp_err_t err = ESP_OK;
 
 	err = i2c_master_bus_add_device(bus_handle, &config->dev_cfg, sensor);
 
 	if (err == ESP_OK) {
-	        config->sensor = *sensor;
+	    config->sensor = *sensor;
 	}
 
     return err;
 }
 
-/* See ms4525do.h for details */
 esp_err_t ms4525_read(ms4525_config *config, ms4525_data *out) {
     uint8_t data[4];
     esp_err_t err = ms4525_read_raw(config, data);
@@ -125,13 +105,18 @@ esp_err_t ms4525_read(ms4525_config *config, ms4525_data *out) {
     }
 
     memcpy(out->raw, data, 4);
+
+    //Raw data retrieval 
     out->status = (data[0] >> 6) & 0x03;
     out->pressure_raw = ((uint16_t)(data[0] & 0x3F) << 8) | data[1];
     out->temp_raw = ((uint16_t)data[2] << 3) | ((data[3] >> 5) & 0x07);
-    float pressure_psi = ((out->pressure_raw - (config->output_min * P_CNT)) * (config->pressure_span / (config->output_span * P_CNT))) + config->min_pressure;
-    out->pressure_pa = updatePressureFilter((pressure_psi * PSI_TO_PA) - out->offset);
-    out->temp_c =((float)out->temp_raw * (T_MAX - T_MIN) / T_CNT) + T_MIN;
 
+    float pressure_psi = ((out->pressure_raw - (config->output_min * P_CNT)) * 
+                         (config->pressure_span / (config->output_span * P_CNT))) + config->min_pressure; //See datasheet
+    out->temp_c =((float)out->temp_raw * (T_MAX - T_MIN) / T_CNT) + T_MIN; //See datasheet
+    
+    //Not required, fork and remove or remove when downloaded if memory is sparse
+    out->pressure_pa = updatePressureFilter((pressure_psi * PSI_TO_PA) - out->offset);
     if (out->pressure_pa > 0.0f) {
         out->speed_ms = sqrtf((2.0f * out->pressure_pa) / AIR_DENSITY);
     } else {
@@ -143,7 +128,6 @@ esp_err_t ms4525_read(ms4525_config *config, ms4525_data *out) {
     return ESP_OK;
 }
 
-/* See ms4525do.h for details */
 esp_err_t ms4525_offset(ms4525_config *config, ms4525_data *out, uint16_t offset_loop_amount) {
     float offset = 0;
     esp_err_t err;
@@ -165,7 +149,6 @@ esp_err_t ms4525_offset(ms4525_config *config, ms4525_data *out, uint16_t offset
     return ESP_OK;
 }
 
-/* See ms4525do.h for details */
 void ms4525_offset_add(ms4525_data *data, float offset) {
     data->offset = offset;
 }
