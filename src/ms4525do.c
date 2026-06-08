@@ -45,12 +45,14 @@
 #define T_MIN 			(-50.0f)
 #define T_MAX 			(150.0f)
 
+#define MS4525_TIMEOUT_MS 100
+
 static float pressureBuffer[FILTER_SIZE];
 static uint8_t bufferIndex = 0;
 static float pressureSum = 0.0f;
 
 static esp_err_t ms4525_read_raw(ms4525_config *config, uint8_t data[4]) {
-    return i2c_master_receive(config->sensor, data, 4, -1);
+    return i2c_master_receive(config->sensor, data, 4, pdMS_TO_TICKS(MS4525_TIMEOUT_MS));
 }
 
 float updatePressureFilter(float newPressurePa)
@@ -82,6 +84,7 @@ void setup_ms4525(ms4525_config *config, uint32_t i2c_frequency, float min_press
         config->output_min = 0.05f;
         config->output_span = 0.90f;
     }
+
 }
 
 esp_err_t add_ms4525_device(i2c_master_bus_handle_t bus_handle, ms4525_config *config, i2c_master_dev_handle_t *sensor) {
@@ -97,6 +100,7 @@ esp_err_t add_ms4525_device(i2c_master_bus_handle_t bus_handle, ms4525_config *c
 }
 
 esp_err_t ms4525_read(ms4525_config *config, ms4525_data *out) {
+    if(config == NULL || out == NULL) return ESP_ERR_INVALID_ARG;
     uint8_t data[4];
     esp_err_t err = ms4525_read_raw(config, data);
 
@@ -106,10 +110,24 @@ esp_err_t ms4525_read(ms4525_config *config, ms4525_data *out) {
 
     memcpy(out->raw, data, 4);
 
-    //Raw data retrieval 
+    //Raw data retrieval
     out->status = (data[0] >> 6) & 0x03;
     out->pressure_raw = ((uint16_t)(data[0] & 0x3F) << 8) | data[1];
     out->temp_raw = ((uint16_t)data[2] << 3) | ((data[3] >> 5) & 0x07);
+    switch(out->status)
+    {
+        case 0:
+            break; // normal
+
+        case 1:
+            return ESP_FAIL; // reserved
+
+        case 2:
+            return ESP_ERR_INVALID_STATE; // stale data
+
+        case 3:
+            return ESP_FAIL; // fault
+    }
 
     float pressure_psi = ((out->pressure_raw - (config->output_min * P_CNT)) * 
                          (config->pressure_span / (config->output_span * P_CNT))) + config->min_pressure; //See datasheet
