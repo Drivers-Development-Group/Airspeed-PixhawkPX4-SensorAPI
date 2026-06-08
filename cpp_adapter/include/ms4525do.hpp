@@ -38,7 +38,7 @@
 /********************************************************************************
  * CLASSES
  ********************************************************************************/
-class MS4525DO{
+class MS4525DO {
     public:
         /**
         * @brief Configure an MS4525DO driver instance.
@@ -90,5 +90,5 @@ class MS4525DO{
         * @param offset Offset value in Pa.
         */
         void offset_add(ms4525_data *data, float offset);
-        }
+};
 
