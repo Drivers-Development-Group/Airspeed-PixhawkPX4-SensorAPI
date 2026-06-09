@@ -35,6 +35,8 @@
 #include <math.h>
 #include <string.h>
 
+#include "freertos/FreeRTOS.h"
+
 #define PSI_TO_PA 		(6894.76f)
 #define AIR_DENSITY 	(1.225f)
 #define FILTER_SIZE 	(10U)

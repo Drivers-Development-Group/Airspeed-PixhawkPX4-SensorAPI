@@ -7,4 +7,5 @@ idf_component_register(
         "cpp_adapter/include"
     REQUIRES
         driver
+        freertos
 )
