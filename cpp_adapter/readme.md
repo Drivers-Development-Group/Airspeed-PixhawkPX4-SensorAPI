@@ -12,22 +12,6 @@ C++ codebase; otherwise the C API in `include/ms4525do.h` is sufficient.
 | `cpp_adapter/include/ms4525do.hpp` | `MS4525DO` class declaration.     |
 | `cpp_adapter/src/ms4525do.cpp`     | `MS4525DO` class implementation.  |
 
-## Building
-
-Register both the C core and the C++ adapter in your component
-`CMakeLists.txt`:
-
-```cmake
-idf_component_register(
-    SRCS
-        "src/ms4525do.c"
-        "cpp_adapter/src/ms4525do.cpp"
-    INCLUDE_DIRS
-        "include"
-        "cpp_adapter/include"
-)
-```
-
 ## Usage
 
 See [`../example/example.cpp`](../example/example.cpp) for a complete example,

@@ -1,6 +1,10 @@
 idf_component_register(
     SRCS
         "src/ms4525do.c"
+        "cpp_adapter/src/ms4525do.cpp"
     INCLUDE_DIRS
         "include"
+        "cpp_adapter/include"
+    REQUIRES
+        driver
 )

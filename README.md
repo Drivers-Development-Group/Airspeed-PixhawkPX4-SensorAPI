@@ -11,8 +11,7 @@ The driver ships with a lightweight **C** API and an optional **C++** wrapper cl
 
 ## Features
 
-- **Pressure & temperature** acquisition over I2C using the integrated ESP-IDF
-  `i2c_master` driver.
+- **Pressure & temperature** acquisition over I2C.
 - **Airspeed calculation** in m/s, km/h and knots from differential pressure.
 - **Output Type A and Type B** transfer function support.
 - **Offset calibration** via multi-sample averaging, or a manual override. The
@@ -25,12 +24,10 @@ The driver ships with a lightweight **C** API and an optional **C++** wrapper cl
 
 | Path                  | Description                                        |
 | --------------------- | -------------------------------------------------- |
-| `include/ms4525do.h`  | Public C API header.                               |
-| `src/ms4525do.c`      | C driver implementation.                           |
 | `cpp_adapter/`        | C++ wrapper class (`MS4525DO`) around the C core.  |
 | `example/example.c`   | Minimal usage example (C).                         |
 | `example/example.cpp` | Minimal usage example (C++).                       |
-| `docs/`               | Datasheet and application notes.                   |
+| `docs/`               | Datasheet and manufacturer notes.                  |
 | `CMakeLists.txt`      | ESP-IDF component registration.                    |
 | `idf_component.yml`   | ESP-IDF Component Manager manifest.                |
 
